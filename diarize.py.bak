@@ -33,7 +33,7 @@ from helpers import (
     write_srt,
 )
 
-mtypes = {"cpu": "int8", "cuda": "float16", "mps": "int8"}
+mtypes = {"cpu": "int8", "cuda": "float16"}
 
 # Initialize parser
 parser = argparse.ArgumentParser()
@@ -118,11 +118,8 @@ else:
 
 # Transcribe the audio file
 
-# Use 'cpu' for faster_whisper if device is 'mps', but keep 'mps' for PyTorch/NeMo
-fw_device = args.device if args.device != "mps" else "cpu"
-
 whisper_model = faster_whisper.WhisperModel(
-    args.model_name, device=fw_device, compute_type=mtypes[fw_device]
+    args.model_name, device=args.device, compute_type=mtypes[args.device]
 )
 whisper_pipeline = faster_whisper.BatchedInferencePipeline(whisper_model)
 audio_waveform = faster_whisper.decode_audio(vocal_target)
@@ -226,7 +223,7 @@ if info.language in punct_model_langs:
 
     words_list = list(map(lambda x: x["word"], wsm))
 
-    labled_words = punct_model.predict(words_list)
+    labled_words = punct_model.predict(words_list, chunk_size=230)
 
     ending_puncts = ".?!"
     model_puncts = ".,;:!?"
